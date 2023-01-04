@@ -4,6 +4,8 @@ This project includes a Node.js server script and a web page that connects to it
 
 [Node.js](https://nodejs.org/en/about/) is a popular runtime that lets you run server-side JavaScript. This project uses the [Fastify](https://www.fastify.io/) framework and explores basic templating with [Handlebars](https://handlebarsjs.com/).
 
+_Last updated: 4 Jan 2023_
+
 ## Prerequisites
 
 You'll get best use out of this project if you're familiar with basic JavaScript. If you've written JavaScript for client-side web pages this is a little different because it uses server-side JS, but the syntax is the same!
