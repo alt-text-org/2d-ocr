@@ -1,119 +1,89 @@
-/**
- * This is the main Node.js server script for your project
- * Check out the two endpoints this back-end API provides in fastify.get and fastify.post below
- */
-
+const vision = require("@google-cloud/vision");
 const path = require("path");
-
-// Require the fastify framework and instantiate it
 const fastify = require("fastify")({
-  // Set this to true for detailed logging:
-  logger: false,
+    logger: false,
 });
 
-// ADD FAVORITES ARRAY VARIABLE FROM TODO HERE
-
-// Setup our static files
 fastify.register(require("@fastify/static"), {
-  root: path.join(__dirname, "public"),
-  prefix: "/", // optional: default '/'
+    root: path.join(__dirname, "site"), prefix: "/",
+})
+
+fastify.register(require('@fastify/rate-limit'), {
+    max: 60,
+    timeWindow: '1 minute'
+})
+
+const visionClient = new vision.ImageAnnotatorClient();
+
+fastify.get("/", (request, reply) => {
+    reply.sendFile('index.html')
 });
 
-// Formbody lets us parse incoming forms
-fastify.register(require("@fastify/formbody"));
+fastify.post("/api/ocr", async (request, reply) => {
+    const ocrRequest = {
+        image: {
+            content: Buffer.from(request.body, 'base64')
+        }
+    };
 
-// View is a templating manager for fastify
-fastify.register(require("@fastify/view"), {
-  engine: {
-    handlebars: require("handlebars"),
-  },
-});
+    let [result] = await visionClient
+        .textDetection(ocrRequest)
+        .catch(err => {
+            console.log(err)
+            return []
+        });
 
-// Load and parse SEO data
-const seo = require("./src/seo.json");
-if (seo.url === "glitch-default") {
-  seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
+    reply.code(200)
+    reply.send(processResult(result))
+})
+
+function processResult(result) {
+    const {pages} = result.fullTextAnnotation
+    const paragraphs = []
+    pages.forEach(page => {
+        page.blocks.forEach(block => {
+            if (block.blockType === "TEXT") {
+                block.paragraphs.forEach(p => {
+                    paragraphs.push({
+                        text: collapseParagraph(p),
+                        box: getBoundingRect(p)
+                    })
+                })
+            }
+        })
+    })
+
+    return paragraphs
 }
 
-/**
- * Our home page route
- *
- * Returns src/pages/index.hbs with data built into it
- */
-fastify.get("/", function (request, reply) {
-  // params is an object we'll pass to our handlebars template
-  let params = { seo: seo };
+function collapseParagraph(p) {
+    return p.words.map(word => word.symbols.map(s => s.text).join("")).join(" ")
+}
 
-  // If someone clicked the option for a random color it'll be passed in the querystring
-  if (request.query.randomize) {
-    // We need to load our color data file, pick one at random, and add it to the params
-    const colors = require("./src/colors.json");
-    const allColors = Object.keys(colors);
-    let currentColor = allColors[(allColors.length * Math.random()) << 0];
+function getBoundingRect(block) {
+    let xs = block.boundingBox.vertices.map(v => v.x)
+    let ys = block.boundingBox.vertices.map(v => v.y)
 
-    // Add the color properties to the params object
-    params = {
-      color: colors[currentColor],
-      colorError: null,
-      seo: seo,
-    };
-  }
+    const minX = Math.min(...xs)
+    const maxX = Math.max(...xs)
+    const minY = Math.min(...ys)
+    const maxY = Math.max(...ys)
 
-  // The Handlebars code will be able to access the parameter values and build them into the page
-  return reply.view("/src/pages/index.hbs", params);
-});
-
-/**
- * Our POST route to handle and react to form submissions
- *
- * Accepts body data indicating the user choice
- */
-fastify.post("/", function (request, reply) {
-  // Build the params object to pass to the template
-  let params = { seo: seo };
-
-  // If the user submitted a color through the form it'll be passed here in the request body
-  let color = request.body.color;
-
-  // If it's not empty, let's try to find the color
-  if (color) {
-    // ADD CODE FROM TODO HERE TO SAVE SUBMITTED FAVORITES
-
-    // Load our color data file
-    const colors = require("./src/colors.json");
-
-    // Take our form submission, remove whitespace, and convert to lowercase
-    color = color.toLowerCase().replace(/\s/g, "");
-
-    // Now we see if that color is a key in our colors object
-    if (colors[color]) {
-      // Found one!
-      params = {
-        color: colors[color],
-        colorError: null,
-        seo: seo,
-      };
-    } else {
-      // No luck! Return the user value as the error property
-      params = {
-        colorError: request.body.color,
-        seo: seo,
-      };
+    return {
+        left: minX,
+        top: minY,
+        width: maxX - minX,
+        height: maxY - minY
     }
-  }
+}
 
-  // The Handlebars template will use the parameter values to update the page with the chosen color
-  return reply.view("/src/pages/index.hbs", params);
-});
-
-// Run the server and report out to the logs
 fastify.listen(
-  { port: process.env.PORT, host: "0.0.0.0" },
-  function (err, address) {
-    if (err) {
-      console.error(err);
-      process.exit(1);
+    {port: process.env.PORT || 0, host: "0.0.0.0"},
+    function (err, address) {
+        if (err) {
+            console.error(err);
+            process.exit(1);
+        }
+        console.log(`Your app is listening on ${address}`);
     }
-    console.log(`Your app is listening on ${address}`);
-  }
 );
