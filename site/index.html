@@ -261,29 +261,15 @@
     function ocrUrl(url) {
       window.canvas.clear();
       fabric.Image.fromURL(url, async (img) => {
-        document.querySelector(".placeholder").style.display = "none";
-        document.querySelector("#cvs").style.display = "block";
-        const canvasArea = document.querySelector("main");
-        const ratio = Math.min(
-          Math.min(canvasArea.clientWidth / img.width, 1),
-          Math.min(canvasArea.clientHeight / img.height, 1)
-        );
-  
-          window.canvas.setDimensions({
-            width: img.width * ratio,
-            height: img.height * ratio,
-          });
-        
+        window.canvas.setDimensions({
+          width: img.width,
+          height: img.height,
+        });
+
         window.canvas.setBackgroundImage(img, () => {
           window.canvas.renderAll();
           const dataUrl = window.canvas.toDataURL();
-  
-          window.canvas.setDimensions({
-            width: img.width * ratio,
-            height: img.height * ratio,
-          });
-          window.canvas.setZoom(ratio);
-          window.canvas.renderAll();
+
           const base64 = dataUrl.split(",")[1];
           fetch("/api/ocr", {
             method: "POST",
@@ -310,6 +296,22 @@
                   window.paragraphs.push({ rect, text });
                 });
                 matrixToTable(ocrToMatrix());
+
+                const canvasArea = document.querySelector("main");
+                const ratio = Math.min(
+                  Math.min(canvasArea.clientWidth / img.width, 1),
+                  Math.min(canvasArea.clientHeight / img.height, 1)
+                );
+
+                window.canvas.setDimensions({
+                  width: img.width * ratio,
+                  height: img.height * ratio,
+                });
+                console.log(ratio)
+                window.canvas.setZoom(ratio);
+                window.canvas.renderAll();
+                document.querySelector(".placeholder").style.display = "none";
+                document.querySelector("#cvs").style.display = "block";
                 window.canvas.renderAll();
               } else {
                 console.log(result.status);
