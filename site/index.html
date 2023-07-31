@@ -1,368 +1,396 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
-    <meta charset="UTF-8">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta charset="UTF-8" />
     <title>2D OCR</title>
 
-
     <style>
-        :root {
-            --background: #02224d;
-            --dialog: #113874;
-            --button: #008881;
-            --text: #d5d0bc;
-            --border: #5f1b83;
-            --focus-border: #a631ee;
-        }
+      :root {
+        --background: #02224d;
+        --dialog: #113874;
+        --button: #008881;
+        --text: #d5d0bc;
+        --border: #5f1b83;
+        --focus-border: #a631ee;
+      }
 
-        html, body {
-            margin: 0;
-            height: 100%;
-            width: 100%;
-        }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
 
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            background: var(--background);
-            font-family: Helvetica, sans-serif;
-        }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        background: var(--background);
+        font-family: Helvetica, sans-serif;
+      }
 
-        header {
-            width: 100%;
-            margin: 5px;
-            box-sizing: border-box;
-            padding: 0 10px;
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-        }
+      header {
+        width: 100%;
+        margin: 5px;
+        box-sizing: border-box;
+        padding: 0 10px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
 
-        table {
-            color: var(--text);
-            table-layout: fixed;
-            width: 80vw;
-            border-collapse: collapse;
-            border: 3px solid var(--border);
-        }
+      table {
+        color: var(--text);
+        table-layout: fixed;
+        width: 80vw;
+        border-collapse: collapse;
+        border: 3px solid var(--border);
+      }
 
-        td {
-            padding: 20px;
-            border: 3px solid var(--border);
-        }
+      td {
+        padding: 20px;
+        border: 3px solid var(--border);
+      }
 
-        a, a:visited {
-            color: var(--text);
-            font-weight: 900;
+      a,
+      a:visited {
+        color: var(--text);
+        font-weight: 900;
+      }
 
-        }
+      input {
+        position: fixed;
+        top: -10000px;
+        left: -10000px;
+      }
 
-        input {
-            position: fixed;
-            top: -10000px;
-            left: -10000px;
-        }
+      button,
+      label {
+        margin: 10px 0;
+        padding: 5px 10px;
+        color: var(--text);
+        font-weight: 900;
+        font-size: 1.3rem;
+        background: var(--button);
+        border-radius: 10px;
+        box-shadow: 1px 1px 1px 1px #8a8a8aaa;
+      }
 
-        button, label {
-            margin: 10px 0;
-            padding: 5px 10px;
-            color: var(--text);
-            font-weight: 900;
-            font-size: 1.3rem;
-            background: var(--button);
-            border-radius: 10px;
-            box-shadow: 1px 1px 1px 1px #8a8a8aAA;
-        }
+      button:hover,
+      button:focus,
+      label:hover,
+      label:focus,
+      a:hover,
+      a:focus,
+      .focused {
+        filter: brightness(1.2);
+        border: solid 2px var(--focus-border);
+      }
 
-        button:hover, button:focus, label:hover, label:focus, a:hover, a:focus, .focused {
-            filter: brightness(1.2);
-            border: solid 2px var(--focus-border);
-        }
+      h1 {
+        text-align: center;
+      }
 
-        h1 {
-            text-align: center;
-        }
+      h2 {
+        margin: 0;
+      }
 
-        h2 {
-            margin: 0;
-        }
+      dialog {
+        width: 50vw;
+        border: solid 2px var(--border);
+        border-radius: 25px;
+        color: var(--text);
+        background: var(--dialog);
+      }
 
-        dialog {
-            width: 50vw;
-            border: solid 2px var(--border);
-            border-radius: 25px;
-            color: var(--text);
-            background: var(--dialog);
-        }
+      main {
+        width: 100%;
+        height: 100%;
+        overflow: scroll;
+      }
 
-        main {
-            width: 100%;
-            height: 100%;
-            overflow: scroll;
-        }
+      #cvs {
+        width: 100%;
+        height: 100%;
+        max-height: 80vh;
+        display: none;
+        margin-top: 10px;
+      }
 
-        #cvs {
-            width: 100%;
-            height: 100%;
-            max-height: 80vh;
-            display: none;
-            margin-top: 10px;
-        }
+      .centering {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
 
-        .centering {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+      .override {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: none;
+        background: rgba(var(--background), 0.7);
+      }
 
-        .override {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: none;
-            background: rgba(var(--background), 0.7);
-        }
+      .warning {
+        text-align: center;
+        padding: 10px;
+        width: 60%;
+        color: var(--text);
+        border: solid 1px red;
+        background: rgba(255, 0, 0, 0.3);
+      }
 
-        .warning {
-            text-align: center;
-            padding: 10px;
-            width: 60%;
-            color: var(--text);
-            border: solid 1px red;
-            background: rgba(255, 0, 0, 0.3);
-        }
+      .blur {
+        filter: blur(10px);
+      }
 
-        .blur {
-            filter: blur(10px);
-        }
+      .placeholder {
+        text-align: center;
+        width: 50vw;
+        height: 50vh;
+        border-radius: 25px;
+        border: dashed 5px var(--button);
+        color: var(--button);
+        font-weight: 900;
+        font-size: 2rem;
+      }
 
-        .placeholder {
-            text-align: center;
-            width: 50vw;
-            height: 50vh;
-            border-radius: 25px;
-            border: dashed 5px var(--button);
-            color: var(--button);
-            font-weight: 900;
-            font-size: 2rem;
-        }
-
-        .placeholder:hover {
-            filter: brightness(1.2);
-            cursor: pointer;
-        }
+      .placeholder:hover {
+        filter: brightness(1.2);
+        cursor: pointer;
+      }
     </style>
-</head>
-<body>
-<header class="blur">
-    <label for="upload">Upload Image</label>
-    <input id="upload" type="file" accept="image/*" tabindex="0">
-    <button onclick="ocrUrl('/images/example.png')">Try Example</button>
-    <a href="https://social.alt-text.org/@hannah">
-        <img src="https://cdn.glitch.global/09c63ddf-285b-4961-ac49-5ccefca8d2a7/alt-text-org.svg?v=1690777343390"
-             alt="The alt-text.org logo, an eye with an A beaming out from the pupil"
-             width="48" height="48"
-        >
-    </a>
-</header>
-<main class="centering blur">
-    <table aria-live="polite"></table>
-    <div class="placeholder centering" onclick="document.querySelector('input').click()">Paste or Upload Image</div>
-    <canvas id="cvs" aria-label="The uploaded image, with text extraction applied"></canvas>
-</main>
-<div class="centering override">
-    <dialog class="centering">
+  </head>
+  <body>
+    <header class="blur">
+      <label for="upload">Upload Image</label>
+      <input id="upload" type="file" accept="image/*" tabindex="0" />
+      <button onclick="ocrUrl('/images/example.png')">Try Example</button>
+      <a href="https://social.alt-text.org/@hannah">
+        <img
+          src="https://cdn.glitch.global/09c63ddf-285b-4961-ac49-5ccefca8d2a7/alt-text-org.svg?v=1690777343390"
+          alt="The alt-text.org logo, an eye with an A beaming out from the pupil"
+          width="48"
+          height="48"
+        />
+      </a>
+    </header>
+    <main class="centering blur">
+      <table aria-live="polite"></table>
+      <div
+        class="placeholder centering"
+        onclick="document.querySelector('input').click()"
+      >
+        Paste or Upload Image
+      </div>
+      <canvas
+        id="cvs"
+        aria-label="The uploaded image, with text extraction applied"
+      ></canvas>
+    </main>
+    <div class="centering override">
+      <dialog class="centering">
         <h1>Welcome to 2D OCR</h1>
         <p>
-            This is a proof of concept for a plugin for <a href="https://my.alt-text.org">My.Alt-Text.org</a>, it aims
-            to enable folks who rely on alt text to navigate through things like images of tables.
+          This is a proof of concept for a plugin for
+          <a href="https://my.alt-text.org">My.Alt-Text.org</a>, it aims to
+          enable folks who rely on alt text to navigate through things like
+          images of tables.
         </p>
         <p>
-            To use it, upload an image and then use the arrow keys to navigate between the chunks of text extracted.
+          To use it, upload an image and then use the arrow keys to navigate
+          between the chunks of text extracted.
         </p>
         <div class="warning">
-            <h2>Warning:</h2>
-            <p>
-                This sends images you upload to Google for processing. We're searching for alternatives but
-                currently Google Vision is far and away the best optical character recognition available.
-            </p>
+          <h2>Warning:</h2>
+          <p>
+            This sends images you upload to Google for processing. We're
+            searching for alternatives but currently Google Vision is far and
+            away the best optical character recognition available.
+          </p>
         </div>
         <button onclick="closeDialog()">Close</button>
-    </dialog>
-</div>
-</body>
-<script src="lib/fabric.min.js"></script>
-<script>
+      </dialog>
+    </div>
+  </body>
+  <script src="lib/fabric.min.js"></script>
+  <script>
     if (!window.localStorage.getItem("warned")) {
-        document.querySelector("dialog").show()
-        document.querySelector(".override").style.display = "flex"
-        window.localStorage.setItem("warned", "true")
+      document.querySelector("dialog").show();
+      document.querySelector(".override").style.display = "flex";
+      window.localStorage.setItem("warned", "true");
     } else {
-        document.querySelector("header").classList.remove("blur")
-        document.querySelector("main").classList.remove("blur")
+      document.querySelector("header").classList.remove("blur");
+      document.querySelector("main").classList.remove("blur");
     }
 
-    window.canvas = new fabric.Canvas("cvs")
+    window.canvas = new fabric.Canvas("cvs");
 
     document.onpaste = function (event) {
-        const items = (event.clipboardData || event.originalEvent.clipboardData).items;
-        for (let item of items) {
-            if (item.kind === 'file') {
-                ocrFile(item.getAsFile())
-            }
+      const items = (event.clipboardData || event.originalEvent.clipboardData)
+        .items;
+      for (let item of items) {
+        if (item.kind === "file") {
+          ocrFile(item.getAsFile());
         }
+      }
     };
 
     let fileInput = document.querySelector("input");
     fileInput.addEventListener("change", (e) => {
-        ocrFile(e.target.files[0])
-    })
+      ocrFile(e.target.files[0]);
+    });
     fileInput.addEventListener("focus", () => {
-        document.querySelector("label").classList.add("focused")
-    })
+      document.querySelector("label").classList.add("focused");
+    });
     fileInput.addEventListener("blur", () => {
-        document.querySelector("label").classList.remove("focused")
-    })
+      document.querySelector("label").classList.remove("focused");
+    });
 
     function ocrFile(file) {
-        const url = URL.createObjectURL(file);
-        ocrUrl(url)
+      const url = URL.createObjectURL(file);
+      ocrUrl(url);
     }
 
     function ocrUrl(url) {
-        window.canvas.clear()
-        fabric.Image.fromURL(url, async img => {
-            document.querySelector(".placeholder").style.display = "none"
-            document.querySelector("#cvs").style.display = "block"
-            const canvasArea = document.querySelector("main")
-            const ratio = Math.min(
-                Math.min(canvasArea.clientWidth / img.width, 1),
-                Math.min(canvasArea.clientHeight / img.height, 1),
-            );
-            window.canvas.setZoom(ratio)
-            window.canvas.setDimensions({
-                width: img.width * ratio,
-                height: img.height * ratio
+      window.canvas.clear();
+      fabric.Image.fromURL(url, async (img) => {
+        document.querySelector(".placeholder").style.display = "none";
+        document.querySelector("#cvs").style.display = "block";
+        const canvasArea = document.querySelector("main");
+        const ratio = Math.min(
+          Math.min(canvasArea.clientWidth / img.width, 1),
+          Math.min(canvasArea.clientHeight / img.height, 1)
+        );
+  
+          window.canvas.setDimensions({
+            width: img.width * ratio,
+            height: img.height * ratio,
+          });
+        
+        window.canvas.setBackgroundImage(img, () => {
+          window.canvas.renderAll();
+          const dataUrl = window.canvas.toDataURL();
+  
+          window.canvas.setDimensions({
+            width: img.width * ratio,
+            height: img.height * ratio,
+          });
+          window.canvas.setZoom(ratio);
+          window.canvas.renderAll();
+          const base64 = dataUrl.split(",")[1];
+          fetch("/api/ocr", {
+            method: "POST",
+            body: base64,
+          })
+            .then(async (result) => {
+              if (result.ok) {
+                const resp = await result.text();
+                const paragraphs = JSON.parse(resp);
+                window.paragraphs = [];
+                paragraphs.forEach(({ box, text }) => {
+                  const rect = new fabric.Rect({
+                    left: box.left,
+                    top: box.top,
+                    width: box.width,
+                    height: box.height,
+                    fill: "transparent",
+                    stroke: "#FF0000",
+                    strokeWidth: 3,
+                  });
+                  rect.right = rect.left + rect.width;
+                  rect.bottom = rect.top + rect.height;
+                  window.canvas.add(rect);
+                  window.paragraphs.push({ rect, text });
+                });
+                matrixToTable(ocrToMatrix());
+                window.canvas.renderAll();
+              } else {
+                console.log(result.status);
+              }
             })
-
-            window.canvas.setBackgroundImage(img, () => {
-                window.canvas.setZoom(1)
-                window.canvas.renderAll()
-                const dataUrl = window.canvas.toDataURL()
-                window.canvas.setZoom(ratio)
-                window.canvas.renderAll()
-                const base64 = dataUrl.split(',')[1]
-                fetch("/api/ocr", {
-                    method: "POST",
-                    body: base64,
-                }).then(async result => {
-                    if (result.ok) {
-                        const resp = await result.text()
-                        const paragraphs = JSON.parse(resp);
-                        window.paragraphs = []
-                        paragraphs.forEach(({box, text}) => {
-                            const rect = new fabric.Rect({
-                                left: box.left / ratio,
-                                top: box.top / ratio,
-                                width: box.width / ratio,
-                                height: box.height / ratio,
-                                fill: 'transparent',
-                                stroke: '#FF0000',
-                                strokeWidth: 3,
-                            })
-                            rect.right = rect.left + rect.width
-                            rect.bottom = rect.top + rect.height
-                            window.canvas.add(rect)
-                            window.paragraphs.push({rect, text})
-                        })
-                        matrixToTable(ocrToMatrix())
-                        window.canvas.renderAll()
-                    } else {
-                        console.log(result.status)
-                    }
-                }).catch(e => {
-                    console.log(e)
-                })
-            })
-        })
+            .catch((e) => {
+              console.log(e);
+            });
+        });
+      });
     }
 
     function ocrToMatrix() {
-        if (!window.paragraphs.length) {
-            return
-        }
-        window.paragraphs.sort(compareRectPosTopToBottom)
+      if (!window.paragraphs.length) {
+        return;
+      }
+      window.paragraphs.sort(compareRectPosTopToBottom);
 
-        const matrix = []
-        let row = []
-        let last = window.paragraphs[0]
-        for (let para of window.paragraphs) {
-            if (compareRectPosTopToBottom(last, para) > 0) {
-                row.push(para)
-            } else {
-                row.sort(compareRectPosLeftToRight)
-                if (row.length) {
-                    matrix.push(row)
-                }
-                row = [para]
-            }
-            last = para
+      const matrix = [];
+      let row = [];
+      let last = window.paragraphs[0];
+      for (let para of window.paragraphs) {
+        if (compareRectPosTopToBottom(last, para) > 0) {
+          row.push(para);
+        } else {
+          row.sort(compareRectPosLeftToRight);
+          if (row.length) {
+            matrix.push(row);
+          }
+          row = [para];
         }
-        if (row.length) {
-            matrix.push(row)
-        }
+        last = para;
+      }
+      if (row.length) {
+        matrix.push(row);
+      }
 
-        return matrix
+      return matrix;
     }
 
     function matrixToTable(matrix) {
-        const table = document.querySelector("table")
-        table.innerHTML = ""
-        matrix.forEach(row => {
-            const tr = document.createElement("tr")
-            row.forEach(chunk => {
-                const td = document.createElement("td")
-                td.innerText = chunk.text
-                tr.appendChild(td)
-            })
-            table.appendChild(tr)
-        })
+      const table = document.querySelector("table");
+      table.innerHTML = "";
+      matrix.forEach((row) => {
+        const tr = document.createElement("tr");
+        row.forEach((chunk) => {
+          const td = document.createElement("td");
+          td.innerText = chunk.text;
+          tr.appendChild(td);
+        });
+        table.appendChild(tr);
+      });
     }
 
     function closeDialog() {
-        document.querySelector("dialog").close()
-        document.querySelector(".override").style.display = "none"
-        document.querySelector("header").classList.remove("blur")
-        document.querySelector("main").classList.remove("blur")
+      document.querySelector("dialog").close();
+      document.querySelector(".override").style.display = "none";
+      document.querySelector("header").classList.remove("blur");
+      document.querySelector("main").classList.remove("blur");
     }
 
     function compareRectPosTopToBottom(a, b) {
-        const equalityThreshold = 10
-        if (a.rect.bottom + equalityThreshold > b.rect.top) {
-            return 1
-        } else if (b.rect.bottom + equalityThreshold > a.rect.top) {
-            return -1
-        } else {
-            return 0
-        }
+      const equalityThreshold = 10;
+      if (a.rect.bottom + equalityThreshold > b.rect.top) {
+        return 1;
+      } else if (b.rect.bottom + equalityThreshold > a.rect.top) {
+        return -1;
+      } else {
+        return 0;
+      }
     }
 
     function compareRectPosLeftToRight(a, b) {
-        const equalityThreshold = 10
-        if (a.rect.right + equalityThreshold > b.rect.left) {
-            return 1
-        } else if (b.rect.left + equalityThreshold > a.rect.right) {
-            return -1
-        } else {
-            return 0
-        }
+      const equalityThreshold = 10;
+      if (a.rect.right + equalityThreshold > b.rect.left) {
+        return 1;
+      } else if (b.rect.left + equalityThreshold > a.rect.right) {
+        return -1;
+      } else {
+        return 0;
+      }
     }
-</script>
+  </script>
 </html>

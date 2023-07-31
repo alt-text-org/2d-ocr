@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Proof of concept website for 2D navigation of OCR results",
   "main": "server.js",
-  "scripts": {},
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "fastify": "^4.19.2",
     "@fastify/static": "^6.10.2",
@@ -11,7 +13,7 @@
     "@google-cloud/vision": "^2.4.2"
   },
   "engines": {
-    "node": "18.x"
+    "node": "16.x"
   },
   "keywords": [],
   "author": "Hannah Kolbeck",
