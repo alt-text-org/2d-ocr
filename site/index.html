@@ -329,7 +329,9 @@
               } else {
                   console.log(result.status);
                 if (result.status === 429) {
-                  alert("Global rate limit exceeded, try again")                  
+                  alert("Global rate limit exceeded, try again")
+                } else if (result.status === 413) {
+                  alert("File too large, limits is around 6MB")
                 } else {
                   alert("Unknown error")
                 }
