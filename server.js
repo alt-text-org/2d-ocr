@@ -2,7 +2,7 @@ const vision = require("@google-cloud/vision");
 const path = require("path");
 const fastify = require("fastify")({
   logger: false,
-  bodyLimit: 10 * 1024 * 1024
+  bodyLimit: 30 * 1024 * 1024
 });
 
 fastify.register(require("@fastify/static"), {
