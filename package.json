@@ -1,27 +1,19 @@
 {
-  "name": "glitch-hello-node",
-  "version": "0.1.0",
-  "description": "A simple Node app built on fastify, instantly up and running. Built to be remixed on Glitch.com.",
+  "name": "2d-ocr",
+  "version": "1.0.0",
+  "description": "Proof of concept website for 2D navigation of OCR results",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
+  "scripts": {},
   "dependencies": {
     "fastify": "^4.19.2",
-    "handlebars": "^4.7.7",
-    "@fastify/formbody": "^7.4.0",
     "@fastify/static": "^6.10.2",
-    "@fastify/view": "^8.0.0"
+    "@fastify/rate-limit": "^8.0.3",
+    "@google-cloud/vision": "^2.4.2"
   },
   "engines": {
-    "node": "14.x"
+    "node": "18.x"
   },
-  "repository": {
-    "url": "https://glitch.com/edit/#!/glitch-hello-node"
-  },
-  "license": "MIT",
-  "keywords": [
-    "node",
-    "glitch"
-  ]
+  "keywords": [],
+  "author": "Hannah Kolbeck",
+  "license": "GPL-3.0-or-later"
 }
