@@ -110,14 +110,23 @@
         width: 100%;
         height: 100%;
         overflow: scroll;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+      }
+
+      #cvs-wrapper {
+        display: none;
+        width: 100%;
+        height: 100%;
+        max-height: 80vh;
+        margin-top: 10px;
       }
 
       #cvs {
         width: 100%;
         height: 100%;
-        max-height: 80vh;
-        display: none;
-        margin-top: 10px;
       }
 
       .centering {
@@ -181,7 +190,7 @@
         />
       </a>
     </header>
-    <main class="centering blur">
+    <main class="blur">
       <table aria-live="polite"></table>
       <div
         class="placeholder centering"
@@ -189,10 +198,12 @@
       >
         Paste or Upload Image
       </div>
-      <canvas
-        id="cvs"
-        aria-label="The uploaded image, with text extraction applied"
-      ></canvas>
+      <div id="cvs-wrapper" class="centering">
+        <canvas
+          id="cvs"
+          aria-label="The uploaded image, with text extraction applied"
+        ></canvas>
+      </div>
     </main>
     <div class="centering override">
       <dialog class="centering">
@@ -297,21 +308,21 @@
                 });
                 matrixToTable(ocrToMatrix());
 
-                const canvasArea = document.querySelector("main");
-                const ratio = Math.min(
-                  Math.min(canvasArea.clientWidth / img.width, 1),
-                  Math.min(canvasArea.clientHeight / img.height, 1)
-                );
+                const canvasArea = document.querySelector("#cvs-wrapper");
+                canvasArea.style.display = "flex";
+//                 const ratio = Math.min(
+//                   Math.min(canvasArea.clientWidth / img.width, 1),
+//                   Math.min(canvasArea.clientHeight / img.height, 1)
+//                 );
 
-                window.canvas.setDimensions({
-                  width: img.width * ratio,
-                  height: img.height * ratio,
-                });
-                console.log(ratio)
-                window.canvas.setZoom(ratio);
+//                 window.canvas.setDimensions({
+//                   width: img.width * ratio,
+//                   height: img.height * ratio,
+//                 });
+//                 console.log(ratio);
+//                 window.canvas.setZoom(ratio);
                 window.canvas.renderAll();
                 document.querySelector(".placeholder").style.display = "none";
-                document.querySelector("#cvs").style.display = "block";
                 window.canvas.renderAll();
               } else {
                 console.log(result.status);
